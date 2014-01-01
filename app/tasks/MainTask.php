@@ -4,29 +4,25 @@ class MainTask extends \Phalcon\CLI\Task {
 
     public function mainAction() {
         $cacheFolder = APPLICATION_PATH . '/cache/data.gov.tw/' . date('Y-m-d');
-        if(!file_exists($cacheFolder)) {
+        if (!file_exists($cacheFolder)) {
             mkdir($cacheFolder, 0777, true);
         }
-        for($i = 0; $i <= 173; $i++) {
-            $targetUrl = 'http://data.gov.tw/?q=data_list&page=' . $i;
-            $targetFile = $cacheFolder . '/' . md5($targetUrl);
-            if(!file_exists($targetFile)) {
-                file_put_contents($targetFile, file_get_contents($targetUrl));
+        $listUrl = 'http://data.gov.tw/?q=data_list_json';
+        $listFile = $cacheFolder . '/' . md5($listUrl);
+        if (!file_exists($listFile)) {
+            file_put_contents($listFile, file_get_contents($listUrl));
+        }
+        $nodes = json_decode(substr(file_get_contents($listFile), 3)); //skip the first 3 characters, BOM
+        foreach ($nodes AS $node) {
+            $nodeTitle = strip_tags($node->{'標題'});
+            $quotePos = strpos($node->{'標題'}, '">');
+            $link = 'http://data.gov.tw' . substr($node->{'標題'}, 9, $quotePos - 9);
+            $linkFile = $cacheFolder . '/' . md5($link);
+            if (!file_exists($linkFile)) {
+                file_put_contents($linkFile, file_get_contents($link));
             }
-            $pageContent = file_get_contents($targetFile);
-            $offset = 0;
-            $pos = strpos($pageContent, '<h2  property="dc:title" datatype=""><a href="', $offset);
-            while(false !== $pos) {
-                $offset = $pos + 46;
-                $quotePos = strpos($pageContent, '"', $offset);
-                $link = 'http://data.gov.tw' . substr($pageContent, $offset, $quotePos - $offset);
-                $linkFile = $cacheFolder . '/' . md5($link);
-                if(!file_exists($linkFile)) {
-                    file_put_contents($linkFile, file_get_contents($link));
-                }
-                echo "{$link}\n";
-                $pos = strpos($pageContent, '<h2  property="dc:title" datatype=""><a href="', $offset);
-            }
+            echo "{$link}\n";
+            $nodeContent = file_get_contents($linkFile);
         }
     }
 
