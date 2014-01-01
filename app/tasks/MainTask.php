@@ -24,18 +24,14 @@ class MainTask extends \Phalcon\CLI\Task {
             if (!file_exists($nodeResult['linkFile'])) {
                 file_put_contents($nodeResult['linkFile'], file_get_contents($nodeResult['link']));
             }
-            echo "{$nodeResult['link']}\n";
             $nodeContent = file_get_contents($nodeResult['linkFile']);
             $tokenCount = substr_count($nodeContent, '" class="filetype_');
-            if($tokenCount === 1) {
-                $parts = explode('" class="filetype_', $nodeContent);
-                $nodeResult['dataUrl'] = substr($parts[0], strrpos($parts[0], '"') + 1);
-                $nodeResult['dataType'] = substr($parts[1], 0, strpos($parts[1], '"'));
-            }
+            if ($tokenCount === 0)
+                continue;
             $nodeResult['info'] = array();
             $offset = 0;
             $pos = strpos($nodeContent, '<th class="field-label">', $offset);
-            while(false !== $pos) {
+            while (false !== $pos) {
                 $offset = $pos + 24;
                 $thEndPos = strpos($nodeContent, '</th>', $offset);
                 $tdEndPos = strpos($nodeContent, '</td>', $offset);
@@ -43,7 +39,13 @@ class MainTask extends \Phalcon\CLI\Task {
                 // for next loop
                 $pos = strpos($nodeContent, '<th class="field-label">', $offset);
             }
-            $resultNodes[] = $nodeResult;
+            for ($i = 0; $i < $tokenCount; $i ++) {
+                $parts = explode('" class="filetype_', $nodeContent);
+                $nextKey = $i + 1;
+                $nodeResult['dataUrl'] = substr($parts[$i], strrpos($parts[$i], '"') + 1);
+                $nodeResult['dataType'] = substr($parts[$nextKey], 0, strpos($parts[$nextKey], '"'));
+                $resultNodes[] = $nodeResult;
+            }
         }
         file_put_contents(dirname(APPLICATION_PATH) . '/public/files/data.gov.tw.json', json_encode($resultNodes));
     }
