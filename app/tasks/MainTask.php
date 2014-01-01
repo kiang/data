@@ -13,6 +13,20 @@ class MainTask extends \Phalcon\CLI\Task {
             if(!file_exists($targetFile)) {
                 file_put_contents($targetFile, file_get_contents($targetUrl));
             }
+            $pageContent = file_get_contents($targetFile);
+            $offset = 0;
+            $pos = strpos($pageContent, '<h2  property="dc:title" datatype=""><a href="', $offset);
+            while(false !== $pos) {
+                $offset = $pos + 46;
+                $quotePos = strpos($pageContent, '"', $offset);
+                $link = 'http://data.gov.tw' . substr($pageContent, $offset, $quotePos - $offset);
+                $linkFile = $cacheFolder . '/' . md5($link);
+                if(!file_exists($linkFile)) {
+                    file_put_contents($linkFile, file_get_contents($link));
+                }
+                echo "{$link}\n";
+                $pos = strpos($pageContent, '<h2  property="dc:title" datatype=""><a href="', $offset);
+            }
         }
     }
 
