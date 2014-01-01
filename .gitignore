@@ -1,0 +1,5 @@
+app/cache/*.php
+app/config/config.php
+.htaccess
+public/.htaccess
+nbproject
