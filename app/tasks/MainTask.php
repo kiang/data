@@ -3,7 +3,17 @@
 class MainTask extends \Phalcon\CLI\Task {
 
     public function mainAction() {
-        echo "\nThis is the default task and the default action \n";
+        $cacheFolder = APPLICATION_PATH . '/cache/data.gov.tw/' . date('Y-m-d');
+        if(!file_exists($cacheFolder)) {
+            mkdir($cacheFolder, 0777, true);
+        }
+        for($i = 0; $i <= 173; $i++) {
+            $targetUrl = 'http://data.gov.tw/?q=data_list&page=' . $i;
+            $targetFile = $cacheFolder . '/' . md5($targetUrl);
+            if(!file_exists($targetFile)) {
+                file_put_contents($targetFile, file_get_contents($targetUrl));
+            }
+        }
     }
 
     /**

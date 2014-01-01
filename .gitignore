@@ -1,4 +1,4 @@
-app/cache/*.php
+app/cache/*
 app/config/config.php
 .htaccess
 public/.htaccess
