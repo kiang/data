@@ -47,36 +47,21 @@ class MainTask extends \Phalcon\CLI\Task {
                 $parts = explode('" class="filetype_', $nodeContent);
                 $nextKey = $i + 1;
                 $nodeResult['dataUrl'] = substr($parts[$i], strrpos($parts[$i], '"') + 1);
+                if(substr($nodeResult['dataUrl'], 0, 1) === '/') {
+                    $urlParameters = array();
+                    parse_str(parse_url($nodeResult['dataUrl'], PHP_URL_QUERY), $urlParameters);
+                    if(!isset($urlParameters['file'])) {
+                        if(true === $this->debug) {
+                            echo "something was wrong with url: {$nodeResult['dataUrl']}\n";
+                        }
+                        exit();
+                    }
+                    $nodeResult['dataUrl'] = $urlParameters['file'];
+                }
                 $nodeResult['dataType'] = substr($parts[$nextKey], 0, strpos($parts[$nextKey], '"'));
 
                 ++$counter;
-                $dataFile = $dataFolder . '/' . $fileName . '_' . $nodeResult['dataType'];
-                if (!file_exists($dataFile)) {
-                    ;
-                    $request = new HttpRequest(urldecode('http://www.ylepb.gov.tw/df_ufiles/c/%E6%B0%B4%E5%BA%AB%E9%9B%86%E6%B0%B4%E5%8D%80.xls'), HttpRequest::METH_GET);
-                    //$request = new HttpRequest(urldecode($nodeResult['dataUrl']), HttpRequest::METH_GET);
-                    $request->setHeaders(array(
-                        'Accept-Language' => 'en-US,en;q=0.8',
-                        'Cache-Control' => 'no-cache',
-                        'Connection' => 'keep-alive',
-                        'Pragma' => 'no-cache',
-                        'User-Agent' => 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/31.0.1650.63 Safari/537.36',
-                    ));
-                    try {
-                        $message = $request->send();
-                    } catch (HttpException $ex) {
-                        //skip
-                    }
-                    file_put_contents($dataFile, $request->getResponseBody());
-                    $headerText = "source_url:{$nodeResult['link']}\n";
-                    $headerText .= "url:{$nodeResult['dataUrl']}\n";
-                    $headerText .= "code:{$request->getResponseCode()}\n";
-                    $headers = $message->getHeaders();
-                    foreach ($headers AS $key => $val) {
-                        $headerText .= "{$key}:{$val}\n";
-                    }
-                    file_put_contents($dataFile . '_headers', $headerText);
-                }
+                $nodeResult['dataUrlHeaders'] = get_headers($nodeResult['dataUrl'], 1);
 
                 $resultNodes[] = $nodeResult;
             }
@@ -101,7 +86,7 @@ class MainTask extends \Phalcon\CLI\Task {
     private function localFileName($url) {
         $fileName = str_replace(array('/', 'http:', 'https:', '?', '&'), array('_', '', '', '_', '_'), $url);
         if (true === $this->debug) {
-            echo "rename {$url} to {$fileName}";
+            echo "rename {$url} to {$fileName}\n";
         }
         return $fileName;
     }
