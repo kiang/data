@@ -10,10 +10,12 @@ class MainTask extends \Phalcon\CLI\Task {
         }
         $listUrl = 'http://data.gov.tw/?q=data_list_json';
         $listFile = $cacheFolder . '/' . md5($listUrl);
-        if (!file_exists($listFile)) {
-            file_put_contents($listFile, file_get_contents($listUrl));
+        $jsonContent = $this->getFileContent($listFile, $listUrl);
+        if (substr($jsonContent, 0, 3) === b"\xEF\xBB\xBF") {
+            //skip the first 3 characters, BOM
+            $jsonContent = substr($jsonContent, 3);
         }
-        $nodes = json_decode(substr(file_get_contents($listFile), 3)); //skip the first 3 characters, BOM
+        $nodes = json_decode($jsonContent);
         $resultNodes = array();
         $counter = 0;
         foreach ($nodes AS $node) {
@@ -24,10 +26,7 @@ class MainTask extends \Phalcon\CLI\Task {
             $nodeResult['link'] = 'http://data.gov.tw' . substr($node->{'標題'}, 9, $quotePos - 9);
             $fileName = md5($nodeResult['link']);
             $nodeResult['linkFile'] = $cacheFolder . '/' . $fileName;
-            if (!file_exists($nodeResult['linkFile'])) {
-                file_put_contents($nodeResult['linkFile'], file_get_contents($nodeResult['link']));
-            }
-            $nodeContent = file_get_contents($nodeResult['linkFile']);
+            $nodeContent = $this->getFileContent($nodeResult['linkFile'], $nodeResult['link']);
             $tokenCount = substr_count($nodeContent, '" class="filetype_');
             if ($tokenCount === 0)
                 continue;
@@ -71,7 +70,7 @@ class MainTask extends \Phalcon\CLI\Task {
                     $headerText .= "url:{$nodeResult['dataUrl']}\n";
                     $headerText .= "code:{$request->getResponseCode()}\n";
                     $headers = $message->getHeaders();
-                    foreach($headers AS $key => $val) {
+                    foreach ($headers AS $key => $val) {
                         $headerText .= "{$key}:{$val}\n";
                     }
                     file_put_contents($dataFile . '_headers', $headerText);
@@ -83,12 +82,15 @@ class MainTask extends \Phalcon\CLI\Task {
         file_put_contents(dirname(APPLICATION_PATH) . '/public/files/data.gov.tw.json', json_encode($resultNodes));
     }
 
-    /**
-     * @param array $params
+    /*
+     * 
      */
-    public function testAction(array $params) {
-        echo sprintf('hello %s', $params[0]) . PHP_EOL;
-        echo sprintf('best regards, %s', $params[1]) . PHP_EOL;
+
+    private function getFileContent($localFile, $remoteFile) {
+        if (!file_exists($localFile)) {
+            file_put_contents($localFile, file_get_contents($remoteFile));
+        }
+        return file_exists($localFile) ? file_get_contents($localFile) : '';
     }
 
 }
