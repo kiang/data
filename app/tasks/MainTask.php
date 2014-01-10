@@ -80,7 +80,7 @@ class MainTask extends \Phalcon\CLI\Task {
             if (true === $this->debug) {
                 echo "getting remote file: {$remoteFile}\n";
             }
-            file_put_contents($localFile, file_get_contents($remoteFile));
+            file_put_contents($localFile, file_get_contents($this->fixUrl($remoteFile)));
         }
         return file_exists($localFile) ? file_get_contents($localFile) : '';
     }
@@ -90,9 +90,25 @@ class MainTask extends \Phalcon\CLI\Task {
             if (true === $this->debug) {
                 echo "getting remote headers: {$remoteFile}\n";
             }
-            file_put_contents($localFile, serialize(get_headers($remoteFile, 1)));
+            file_put_contents($localFile, serialize(get_headers($this->fixUrl($remoteFile), 1)));
         }
         return file_exists($localFile) ? unserialize(file_get_contents($localFile)) : '';
+    }
+    
+    private function fixUrl($url) {
+        //ref: http://ubuntu-rubyonrails.blogspot.tw/2009/06/unicode.html
+        preg_match_all('/[\x{2E80}-\x{9FFF}]+/u', $url, $matches, PREG_OFFSET_CAPTURE);
+        if(!empty($matches[0])) {
+            $newUrl = '';
+            $urlOffset = 0;
+            foreach($matches[0] AS $match) {
+                $newUrl .= substr($url, $urlOffset, $match[1] - $urlOffset);
+                $newUrl .= urlencode($match[0]);
+                $urlOffset = $match[1] + strlen($match[0]);
+            }
+            $url = $newUrl . substr($url, $urlOffset);
+        }
+        return $url;
     }
 
     private function localFileName($url) {
