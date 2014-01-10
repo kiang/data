@@ -2,6 +2,8 @@
 
 class MainTask extends \Phalcon\CLI\Task {
 
+    var $debug = true;
+
     public function mainAction() {
         $cacheFolder = APPLICATION_PATH . '/cache/data.gov.tw/' . date('Y-m-d');
         $dataFolder = APPLICATION_PATH . '/cache/data.gov.tw/' . date('Y-m-d') . '/data';
@@ -9,7 +11,7 @@ class MainTask extends \Phalcon\CLI\Task {
             mkdir($dataFolder, 0777, true);
         }
         $listUrl = 'http://data.gov.tw/?q=data_list_json';
-        $listFile = $cacheFolder . '/' . md5($listUrl);
+        $listFile = $cacheFolder . '/' . $this->localFileName($listUrl);
         $jsonContent = $this->getFileContent($listFile, $listUrl);
         if (substr($jsonContent, 0, 3) === b"\xEF\xBB\xBF") {
             //skip the first 3 characters, BOM
@@ -24,7 +26,7 @@ class MainTask extends \Phalcon\CLI\Task {
             );
             $quotePos = strpos($node->{'標題'}, '">');
             $nodeResult['link'] = 'http://data.gov.tw' . substr($node->{'標題'}, 9, $quotePos - 9);
-            $fileName = md5($nodeResult['link']);
+            $fileName = $this->localFileName($nodeResult['link']);
             $nodeResult['linkFile'] = $cacheFolder . '/' . $fileName;
             $nodeContent = $this->getFileContent($nodeResult['linkFile'], $nodeResult['link']);
             $tokenCount = substr_count($nodeContent, '" class="filetype_');
@@ -88,9 +90,20 @@ class MainTask extends \Phalcon\CLI\Task {
 
     private function getFileContent($localFile, $remoteFile) {
         if (!file_exists($localFile)) {
+            if (true === $this->debug) {
+                echo "getting remote file: {$remoteFile}\n";
+            }
             file_put_contents($localFile, file_get_contents($remoteFile));
         }
         return file_exists($localFile) ? file_get_contents($localFile) : '';
+    }
+
+    private function localFileName($url) {
+        $fileName = str_replace(array('/', 'http:', 'https:', '?', '&'), array('_', '', '', '_', '_'), $url);
+        if (true === $this->debug) {
+            echo "rename {$url} to {$fileName}";
+        }
+        return $fileName;
     }
 
 }
