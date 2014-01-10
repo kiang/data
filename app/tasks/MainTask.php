@@ -18,9 +18,14 @@ class MainTask extends \Phalcon\CLI\Task {
             $jsonContent = substr($jsonContent, 3);
         }
         $nodes = json_decode($jsonContent);
+        $nodesCount = count($nodes);
         $resultNodes = array();
         $counter = 0;
         foreach ($nodes AS $node) {
+            ++$counter;
+            if(true == $this->debug) {
+                echo "Processing node {$counter} / {$nodesCount}\n";
+            }
             $nodeResult = array(
                 'title' => strip_tags($node->{'標題'}),
             );
@@ -59,10 +64,7 @@ class MainTask extends \Phalcon\CLI\Task {
                     $nodeResult['dataUrl'] = $urlParameters['file'];
                 }
                 $nodeResult['dataType'] = substr($parts[$nextKey], 0, strpos($parts[$nextKey], '"'));
-
-                ++$counter;
                 $nodeResult['dataUrlHeaders'] = get_headers($nodeResult['dataUrl'], 1);
-
                 $resultNodes[] = $nodeResult;
             }
         }
