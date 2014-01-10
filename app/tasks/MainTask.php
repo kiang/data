@@ -5,6 +5,13 @@ class MainTask extends \Phalcon\CLI\Task {
     var $debug = true;
 
     public function mainAction() {
+        stream_context_set_default(
+                array(
+                    'http' => array(
+                        'method' => 'HEAD'
+                    )
+                )
+        );
         $cacheFolder = APPLICATION_PATH . '/cache/data.gov.tw/' . date('Y-m-d');
         $dataFolder = APPLICATION_PATH . '/cache/data.gov.tw/' . date('Y-m-d') . '/data';
         if (!file_exists($dataFolder)) {
@@ -92,16 +99,21 @@ class MainTask extends \Phalcon\CLI\Task {
             }
             file_put_contents($localFile, serialize(get_headers($this->fixUrl($remoteFile), 1)));
         }
-        return file_exists($localFile) ? unserialize(file_get_contents($localFile)) : '';
+        $headers = array();
+        if (file_exists($localFile)) {
+            $headers = unserialize(file_get_contents($localFile));
+            $headers['status_code'] = substr($headers[0], 9, 3);
+        }
+        return $headers;
     }
-    
+
     private function fixUrl($url) {
         //ref: http://ubuntu-rubyonrails.blogspot.tw/2009/06/unicode.html
         preg_match_all('/[\x{2E80}-\x{9FFF}]+/u', $url, $matches, PREG_OFFSET_CAPTURE);
-        if(!empty($matches[0])) {
+        if (!empty($matches[0])) {
             $newUrl = '';
             $urlOffset = 0;
-            foreach($matches[0] AS $match) {
+            foreach ($matches[0] AS $match) {
                 $newUrl .= substr($url, $urlOffset, $match[1] - $urlOffset);
                 $newUrl .= urlencode($match[0]);
                 $urlOffset = $match[1] + strlen($match[0]);
