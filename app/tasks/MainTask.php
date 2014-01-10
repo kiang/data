@@ -23,7 +23,7 @@ class MainTask extends \Phalcon\CLI\Task {
         $counter = 0;
         foreach ($nodes AS $node) {
             ++$counter;
-            if(true == $this->debug) {
+            if (true == $this->debug) {
                 echo "Processing node {$counter} / {$nodesCount}\n";
             }
             $nodeResult = array(
@@ -52,11 +52,11 @@ class MainTask extends \Phalcon\CLI\Task {
                 $parts = explode('" class="filetype_', $nodeContent);
                 $nextKey = $i + 1;
                 $nodeResult['dataUrl'] = substr($parts[$i], strrpos($parts[$i], '"') + 1);
-                if(substr($nodeResult['dataUrl'], 0, 1) === '/') {
+                if ((substr($nodeResult['dataUrl'], 0, 1) === '/') || (false !== strpos($nodeResult['dataUrl'], 'http://data.gov.tw'))) {
                     $urlParameters = array();
                     parse_str(parse_url($nodeResult['dataUrl'], PHP_URL_QUERY), $urlParameters);
-                    if(!isset($urlParameters['file'])) {
-                        if(true === $this->debug) {
+                    if (!isset($urlParameters['file'])) {
+                        if (true === $this->debug) {
                             echo "something was wrong with url: {$nodeResult['dataUrl']}\n";
                         }
                         exit();
@@ -64,7 +64,7 @@ class MainTask extends \Phalcon\CLI\Task {
                     $nodeResult['dataUrl'] = $urlParameters['file'];
                 }
                 $nodeResult['dataType'] = substr($parts[$nextKey], 0, strpos($parts[$nextKey], '"'));
-                $nodeResult['dataUrlHeaders'] = get_headers($nodeResult['dataUrl'], 1);
+                $nodeResult['dataUrlHeaders'] = $this->getFileHeader("{$nodeResult['linkFile']}_{$nodeResult['dataType']}", $nodeResult['dataUrl']);
                 $resultNodes[] = $nodeResult;
             }
         }
@@ -83,6 +83,16 @@ class MainTask extends \Phalcon\CLI\Task {
             file_put_contents($localFile, file_get_contents($remoteFile));
         }
         return file_exists($localFile) ? file_get_contents($localFile) : '';
+    }
+
+    private function getFileHeader($localFile, $remoteFile) {
+        if (!file_exists($localFile)) {
+            if (true === $this->debug) {
+                echo "getting remote headers: {$remoteFile}\n";
+            }
+            file_put_contents($localFile, serialize(get_headers($remoteFile, 1)));
+        }
+        return file_exists($localFile) ? unserialize(file_get_contents($localFile)) : '';
     }
 
     private function localFileName($url) {
