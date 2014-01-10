@@ -5,13 +5,6 @@ class MainTask extends \Phalcon\CLI\Task {
     var $debug = true;
 
     public function mainAction() {
-        stream_context_set_default(
-                array(
-                    'http' => array(
-                        'method' => 'HEAD'
-                    )
-                )
-        );
         $cacheFolder = APPLICATION_PATH . '/cache/data.gov.tw/' . date('Y-m-d');
         $dataFolder = APPLICATION_PATH . '/cache/data.gov.tw/' . date('Y-m-d') . '/data';
         if (!file_exists($dataFolder)) {
@@ -97,7 +90,21 @@ class MainTask extends \Phalcon\CLI\Task {
             if (true === $this->debug) {
                 echo "getting remote headers: {$remoteFile}\n";
             }
+            stream_context_set_default(
+                    array(
+                        'http' => array(
+                            'method' => 'HEAD'
+                        )
+                    )
+            );
             file_put_contents($localFile, serialize(get_headers($this->fixUrl($remoteFile), 1)));
+            stream_context_set_default(
+                    array(
+                        'http' => array(
+                            'method' => 'GET'
+                        )
+                    )
+            );
         }
         $headers = array();
         if (file_exists($localFile)) {
