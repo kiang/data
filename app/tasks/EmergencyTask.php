@@ -70,64 +70,84 @@ class EmergencyTask extends \Phalcon\CLI\Task {
             'url' => 'http://www.wanfang.gov.tw/W402008web_new/epd_query.asp',
         ),
         array(
+            'parser' => 'parserH',
             'title' => '國泰醫療財團法人國泰綜合醫院',
             'url' => 'http://med.cgh.org.tw/unit/branch/Pharmacy/ebl/RealTimeInfoHQ.html',
         ),
         array(
+            'parser' => 'parserI',
             'title' => '佛教慈濟醫療財團法人台北慈濟醫院急診即時資訊',
             'url' => 'http://app.tzuchi.com.tw/tchw/ERInfo/ERInformation.aspx',
         ),
         array(
+            'parser' => 'parserJ',
             'title' => '衛生福利部雙和醫院（委託臺北醫學大學興建經營）急診即時資訊',
             'url' => 'http://eng.shh.org.tw/',
         ),
         array(
+            'parser' => 'parserK',
             'title' => '醫療財團法人徐元智先生醫藥基金會亞東紀念醫院急診即時資訊',
             'url' => 'http://www.femh.org.tw/research/news_op.aspx',
         ),
         array(
+            'parser' => 'parserL',
             'title' => '臺中榮民總醫院',
             'url' => 'http://www.vghtc.gov.tw/GipOpenWeb/wSite/sp?xdUrl=/wSite/query/Doctor/GetEmgBedInform.jsp&ctNode=55658&mp=1&idPath=213_55658',
         ),
         array(
+            'parser' => 'parserM',
             'title' => '光田醫療社團法人光田綜合醫院(沙鹿總院) ',
             'url' => 'http://www.ktgh.com.tw/BednoInfo_Show.asp?CatID=80&ModuleType=Y',
         ),
         array(
+            'parser' => 'parserM',
             'title' => '光田醫療社團法人光田綜合醫院(大甲院區)',
             'url' => 'http://www.ktgh.com.tw/BednoInfo_Show.asp?CatID=81&ModuleType=Y',
         ),
         array(
+            'parser' => 'parserN',
             'title' => '中國醫藥大學附設醫院',
             'url' => 'http://61.66.117.8/EmrCount/Default.aspx',
         ),
         array(
+            'parser' => 'parserO',
             'title' => '中山醫學大學附設醫院',
             'url' => 'http://www.csh.org.tw/ER/index.aspx',
         ),
         array(
+            'parser' => 'parserP',
             'title' => '童綜合醫院',
             'url' => 'http://www.sltung.com.tw/tw/BED/bed.html',
         ),
         array(
+            'parser' => 'parserQ',
             'title' => '成大醫院',
             'url' => 'http://www.hosp.ncku.edu.tw/nckm/ER/default.aspx',
         ),
         array(
-            'title' => '奇美醫院',
+            'parser' => 'parserR',
+            'title' => '永康奇美醫院',
             'url' => 'http://www.chimei.org.tw/%E6%80%A5%E8%A8%BA%E5%8D%B3%E6%99%82%E8%A8%8A%E6%81%AF/main.aspx?ihosp=10',
         ),
         array(
-            'title' => '高雄榮民總醫院',
-            'url' => 'http://cms03p.vghks.gov.tw/Chinese/MainSite/',
+            'parser' => 'parserS',
+            'title' => '柳營奇美醫院',
+            'url' => 'http://www.chimei.org.tw/%E6%80%A5%E8%A8%BA%E5%8D%B3%E6%99%82%E8%A8%8A%E6%81%AF/main.aspx?ihosp=10',
         ),
         array(
+            'parser' => 'parserT',
+            'title' => '佳里奇美醫院',
+            'url' => 'http://www.chimei.org.tw/%E6%80%A5%E8%A8%BA%E5%8D%B3%E6%99%82%E8%A8%8A%E6%81%AF/main.aspx?ihosp=10',
+        ),
+        array(
+            'parser' => 'parserU',
             'title' => '高雄醫學大學附設中和紀念醫院',
             'url' => 'http://www.kmuh.org.tw/KMUHWeb/Pages/P04MedService/ERStatus.aspx',
         ),
         array(
+            'parser' => 'parserV',
             'title' => '義大醫療財團法人義大醫院',
-            'url' => 'http://www.edah.org.tw/index.asp?set=9462',
+            'url' => 'http://www3.edah.org.tw/E-DA/WebRegister/ProcessEmeInf.jsp',
         ),
     );
 
@@ -145,7 +165,7 @@ class EmergencyTask extends \Phalcon\CLI\Task {
                 $result[$key]['info'] = $this->{$source['parser']}($page);
             }
         }
-        print_r($result);
+        file_put_contents(dirname(APPLICATION_PATH) . '/public/files/emergency.json', json_encode($points));
     }
 
     private function getFileContent($localFile, $remoteFile) {
@@ -306,6 +326,289 @@ class EmergencyTask extends \Phalcon\CLI\Task {
             $lines[6][0] => $lines[6][1],
             $lines[7][0] => $lines[7][1],
             $timeParts[0] => $timeParts[1] . ':' . intval($lines[20][1]),
+        );
+    }
+    
+    private function parserH($page) {
+        $page = mb_convert_encoding($page, 'utf-8', 'big5');
+        $parts = explode('</td>', $page);
+        foreach ($parts AS $key => $val) {
+            $parts[$key] = explode('：', trim(strip_tags($val)));
+        }
+        return array(
+            $parts[1][0] => $parts[2][0],
+            $parts[5][0] => $parts[6][0],
+            $parts[9][0] => $parts[10][0],
+            $parts[13][0] => $parts[14][0],
+            $parts[17][0] => $parts[18][0],
+            $parts[20][0] => $parts[20][1] . ':' . $parts[20][2],
+        );
+    }
+    
+    private function parserI($page) {
+        $parts = preg_split('/<\\/t[dh]>/', $page);
+        foreach ($parts AS $key => $val) {
+            $parts[$key] = trim(strip_tags($val));
+        }
+        return array(
+            '已向119通報滿床(載)' => $parts[13] === '未向119通報滿床' ? '否' : '是',
+            $parts[2] => $parts[7],
+            $parts[3] => $parts[8],
+            $parts[4] => $parts[9],
+            $parts[5] => $parts[10],
+            $parts[6] => $parts[11],
+        );
+    }
+    
+    private function parserJ($page) {
+        $parts = preg_split('/<\\/t[dh]>/', $page);
+        foreach ($parts AS $key => $val) {
+            $parts[$key] = trim(strip_tags($val));
+        }
+        $timeParts = explode(':', $parts[11]);
+        $timeParts[3] = substr($timeParts[3], 0, 2);
+        return array(
+            $parts[1] => $parts[2],
+            $parts[3] => $parts[4],
+            $parts[5] => $parts[6],
+            $parts[7] => $parts[8],
+            $timeParts[0] => date('Y-m-d ') . implode(':', array($timeParts[1], $timeParts[2], $timeParts[3])),
+        );
+    }
+    
+    private function parserK($page) {
+        $offset = strpos($page, '<span class="magazine_title">亞東紀念醫院');
+        $offset = strrpos($page, '<table width="725" border="0" cellspacing="0" cellpadding="0">', strlen($page) - $offset);
+        $bodyEnd = strpos($page, '<!-- page-->', $offset);
+        $content = substr($page, $offset, $bodyEnd - $offset);
+        $content = str_replace('&nbsp;', '', $content);
+        $parts = explode('</span>', $content);
+        foreach ($parts AS $key => $val) {
+            $parts[$key] = explode('：', trim(strip_tags($val)));
+            $parts[$key][0] = explode('.', $parts[$key][0]);
+        }
+        return array(
+            $parts[1][0][0] => $parts[1][1],
+            $parts[2][0][1] => $parts[2][1],
+            $parts[3][0][1] => $parts[3][1],
+            $parts[4][0][1] => $parts[4][1],
+            $parts[5][0][1] => $parts[5][1],
+            $parts[6][0][1] => $parts[6][1],
+        );
+    }
+    
+    private function parserL($page) {
+        $offset = strpos($page, '<div class="cp">');
+        $bodyEnd = strpos($page, '<div class="quickLink">', $offset);
+        $content = substr($page, $offset, $bodyEnd - $offset);
+        $parts = explode('</td>', $content);
+        foreach ($parts AS $key => $val) {
+            $parts[$key] = trim(strip_tags($val));
+        }
+        return array(
+            $parts[1] => $parts[2],
+            $parts[4] => $parts[5],
+            $parts[6] => $parts[7],
+            $parts[8] => $parts[9],
+            $parts[11] => $parts[12],
+            $parts[14] => $parts[15],
+            $parts[17] => $parts[18],
+        );
+    }
+    
+    private function parserM($page) {
+        $page = mb_convert_encoding($page, 'utf-8', 'big5');
+        $offset = strpos($page, '急診即時資訊公告');
+        $offset = strpos($page, '<table', $offset);
+        $bodyEnd = strpos($page, '</table>', $offset);
+        $content = substr($page, $offset, $bodyEnd - $offset);
+        $parts = preg_split('/<\\/t[dh]>/', $content);
+        foreach ($parts AS $key => $val) {
+            $parts[$key] = trim(strip_tags($val));
+        }
+        return array(
+            $parts[0] => (false === strpos($page, '<td style="color:#e7e7e7;"')) ? '是' : '否',
+            $parts[1] => $parts[6],
+            $parts[2] => $parts[7],
+            $parts[3] => $parts[8],
+            $parts[4] => $parts[9],
+        );
+    }
+    
+    private function parserN($page) {
+        $page = substr($page, strpos($page, '<table'));
+        $parts = explode('</td>', $page);
+        foreach ($parts AS $key => $val) {
+            $parts[$key] = explode('：', trim(strip_tags($val)));
+            $parts[$key][0] = explode('. ', $parts[$key][0]);
+        }
+        return array(
+            $parts[0][0][1] => $parts[1][0][0],
+            $parts[2][0][1] => $parts[3][0][0],
+            $parts[4][0][1] => $parts[5][0][0],
+            $parts[6][0][1] => $parts[7][0][0],
+            $parts[8][0][1] => $parts[9][0][0],
+            $parts[10][0][0] => $parts[10][1],
+        );
+    }
+    
+    private function parserO($page) {
+        $page = substr($page, strpos($page, '<table'));
+        $parts = explode('</td>', $page);
+        foreach ($parts AS $key => $val) {
+            $parts[$key] = trim(strip_tags($val));
+        }
+        $timeParts = explode('：', $parts[21]);
+        return array(
+            '已向119通報滿床(載)' => $parts[20],
+            '等待看診人數' => $parts[2],
+            '等待推床人數' => $parts[4],
+            '等待住院人數' => $parts[6],
+            '等待加護住院人數' => $parts[18],
+            '更新時間' => trim($timeParts[1]),
+        );
+    }
+    
+    private function parserP($page) {
+        $page = mb_convert_encoding($page, 'utf-8', 'big5');
+        $parts = explode('<BR><BR>', $page);
+        foreach ($parts AS $key => $val) {
+            $parts[$key] = explode('：', trim(strip_tags($val)));
+            $parts[$key][0] = explode('.', $parts[$key][0]);
+        }
+        $parts[4][1] = explode("\n", $parts[4][1]);
+        $parts[4][1][3] = explode(' : ', $parts[4][1][3]);
+        return array(
+            $parts[0][0][1] => $parts[0][1],
+            $parts[1][0][1] => $parts[1][1],
+            $parts[2][0][1] => $parts[2][1],
+            $parts[3][0][1] => $parts[3][1],
+            $parts[4][0][1] => $parts[4][1][0],
+            $parts[4][1][3][0] => $parts[4][1][3][1],
+        );
+    }
+    
+    private function parserQ($page) {
+        $page = substr($page, strpos($page, '<table'));
+        $parts = explode('</td>', $page);
+        foreach ($parts AS $key => $val) {
+            $parts[$key] = trim(strip_tags($val));
+        }
+        $parts[0] = explode('（', $parts[0]);
+        $parts[0][1] = explode('：', $parts[0][1]);
+        $parts[0][1][1] = explode('）', $parts[0][1][1]);
+        $parts[14] = explode('：', $parts[14]);
+        $parts[14][1] = trim($parts[14][1]);
+        return array(
+            $parts[2] => $parts[3],
+            $parts[5] => $parts[6],
+            $parts[8] => $parts[9],
+            $parts[11] => $parts[12],
+            $parts[14][0] => $parts[14][1],
+            $parts[0][1][0] => $parts[0][1][1][0],
+        );
+    }
+    
+    private function parserR($page) {
+        $page = substr($page, strpos($page, '<table'));
+        $parts = preg_split('/<\\/t[dh]>/', $page);
+        foreach ($parts AS $key => $val) {
+            $parts[$key] = trim(strip_tags($val));
+        }
+        $parts[0] = explode("\n", $parts[0]);
+        $parts[0][3] = trim($parts[0][3]);
+        $parts[0][6] = trim($parts[0][6]);
+        $parts[1] = explode("\n", $parts[1]);
+        $parts[1][4] = trim($parts[1][4]);
+        return array(
+            $parts[0][3] => $parts[0][6],
+            $parts[1][4] => $parts[8],
+            $parts[2] => $parts[9],
+            $parts[3] => $parts[10],
+            $parts[4] => $parts[11],
+            $parts[5] => $parts[12],
+            $parts[6] => $parts[13],
+            $parts[7] => $parts[14],
+        );
+    }
+    
+    private function parserS($page) {
+        $page = substr($page, strpos($page, '<table'));
+        $parts = preg_split('/<\\/t[dh]>/', $page);
+        foreach ($parts AS $key => $val) {
+            $parts[$key] = trim(strip_tags($val));
+        }
+        $parts[0] = explode("\n", $parts[0]);
+        $parts[0][3] = trim($parts[0][3]);
+        $parts[0][6] = trim($parts[0][6]);
+        $parts[15] = explode("\n", $parts[15]);
+        $parts[15][4] = trim($parts[15][4]);
+        return array(
+            $parts[0][3] => $parts[0][6],
+            $parts[15][4] => $parts[22],
+            $parts[16] => $parts[23],
+            $parts[17] => $parts[24],
+            $parts[18] => $parts[25],
+            $parts[19] => $parts[26],
+            $parts[20] => $parts[27],
+            $parts[21] => $parts[28],
+        );
+    }
+    
+    private function parserT($page) {
+        $page = substr($page, strpos($page, '<table'));
+        $parts = preg_split('/<\\/t[dh]>/', $page);
+        foreach ($parts AS $key => $val) {
+            $parts[$key] = trim(strip_tags($val));
+        }
+        $parts[0] = explode("\n", $parts[0]);
+        $parts[0][3] = trim($parts[0][3]);
+        $parts[0][6] = trim($parts[0][6]);
+        $parts[29] = explode("\n", $parts[29]);
+        $parts[29][4] = trim($parts[29][4]);
+        return array(
+            $parts[0][3] => $parts[0][6],
+            $parts[29][4] => $parts[36],
+            $parts[30] => $parts[37],
+            $parts[31] => $parts[38],
+            $parts[32] => $parts[39],
+            $parts[33] => $parts[40],
+            $parts[34] => $parts[41],
+            $parts[35] => $parts[42],
+        );
+    }
+    
+    private function parserU($page) {
+        $page = substr($page, strpos($page, '<form'));
+        $parts = explode('</td>', $page);
+        foreach ($parts AS $key => $val) {
+            $parts[$key] = explode('：', trim(strip_tags($val)));
+        }
+        $timeParts = explode("\n", $parts[0][0]);;
+        $timeParts[4] = explode('&nbsp;', $timeParts[4]);
+        return array(
+            '通報滿載' => $parts[1][0],
+            $parts[2][0] => $parts[3][0],
+            $parts[4][0] => $parts[5][0],
+            $parts[6][0] => $parts[7][0],
+            $parts[8][0] => $parts[9][0],
+            '更新時間' => trim($timeParts[4][0]),
+        );
+    }
+    
+    private function parserV($page) {
+        $page = mb_convert_encoding($page, 'utf-8', 'big5');
+        $parts = explode('</td>', $page);
+        foreach ($parts AS $key => $val) {
+            $parts[$key] = explode('：', trim(strip_tags($val)));
+            $parts[$key][0] = explode('.', $parts[$key][0]);
+        }
+        return array(
+            $parts[0][0][1] => $parts[0][1],
+            $parts[1][0][1] => $parts[1][1],
+            $parts[2][0][1] => $parts[2][1],
+            $parts[3][0][1] => $parts[3][1],
+            $parts[4][0][1] => $parts[4][1],
         );
     }
 
