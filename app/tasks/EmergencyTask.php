@@ -165,7 +165,7 @@ class EmergencyTask extends \Phalcon\CLI\Task {
                 $result[$key]['info'] = $this->{$source['parser']}($page);
             }
         }
-        file_put_contents(dirname(APPLICATION_PATH) . '/public/files/emergency.json', json_encode($points));
+        file_put_contents(dirname(APPLICATION_PATH) . '/public/files/emergency.json', json_encode($result));
     }
 
     private function getFileContent($localFile, $remoteFile) {
